@@ -31,7 +31,7 @@ ret:
 static void task_delete(struct tasklist *tl, const char *name) {
     struct task *t = tl->head, *prev, *next;
 
-    while (strcmp(t->name, name) != 0)
+    while (t && strcmp(t->name, name) != 0)
         t = t->next;
 
     if (t) {
