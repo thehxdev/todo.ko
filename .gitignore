@@ -1,0 +1,8 @@
+*.symvers
+*.o
+*.mod*
+*.ko
+*.order
+*.cmd
+
+compile_flags.txt
