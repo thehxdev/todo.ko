@@ -48,6 +48,11 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
         return 0;
 
     char *lbuff = kzalloc(lbuff_len, GFP_KERNEL);
+    if (!lbuff) {
+        pr_err("[ERROR] failed to allocate buffer to write tasks\n");
+        return 0;
+    }
+
     while (t) {
         sprintf(lbuff+off, "%s\n", t->name);
         off += t->len + 2;
@@ -57,6 +62,7 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
     if (copy_to_user(buffer, lbuff, lbuff_len))
         return -EFAULT;
 
+    kfree(lbuff);
     *offset += lbuff_len;
     return lbuff_len;
 }
