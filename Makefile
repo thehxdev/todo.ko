@@ -1,6 +1,4 @@
-MYLINUX ?= /home/hx/projects/c-lang/archives/mylinux
-KERNELDIR ?= $(MYLINUX)/linux
-# KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 PWD := $(CURDIR)
 KO := todo.ko
 
