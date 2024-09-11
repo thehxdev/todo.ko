@@ -2,7 +2,7 @@
 Todo app as Linux kernel module! (It's not fully functional yet)
 
 > [!WARNING]
->  Because this is my first Linux kernel module, don't load the kernel module in your main operating system. Compile and load the module inside a Linux VM.
+>  Since this is my first Linux kernel module, don't load the kernel module in your main operating system. Compile and load the module inside a Linux VM.
 
 ## Build
 Build the module with GNU make:
