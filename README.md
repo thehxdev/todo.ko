@@ -42,6 +42,6 @@ sudo rmmod todo
 When you write to `/proc/todo`, the module parses your input. The first character MUST be an uppercase english ascii character.
 At this point only `A` for add and `D` for delete are supported. The general syntax:
 ```txt
-command := CMD_LETTER: TASK
+command := CMD_CHAR: TASK
 ```
 A command contains a single uppercase character which specifies the operation, a colon right after command character and the rest is the task itself.
