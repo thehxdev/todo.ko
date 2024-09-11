@@ -43,6 +43,7 @@ static const struct file_operations todo_proc_fops = {
 static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, loff_t *offset) {
     struct task *t = tl.head;
     size_t lbuff_len = tl.tlen+tl.count+1, off = 0;
+    ssize_t ret = lbuff_len;
 
     if (*offset >= tl.tlen || tl.count == 0)
         return 0;
@@ -59,12 +60,15 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
         t = t->next;
     }
 
-    if (copy_to_user(buffer, lbuff, lbuff_len))
-        return -EFAULT;
-
-    kfree(lbuff);
+    if (copy_to_user(buffer, lbuff, lbuff_len)) {
+        ret = -EFAULT;
+        goto defer_ret;
+    }
     *offset += lbuff_len;
-    return lbuff_len;
+
+defer_ret:
+    kfree(lbuff);
+    return ret;
 }
 
 static int __init todo_init(void) {
