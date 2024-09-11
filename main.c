@@ -70,7 +70,6 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
 static int __init todo_init(void) {
     todo_proc_file = proc_create(PROCFS_NAME, 0666, NULL, &todo_proc_fops);
     if (!todo_proc_file) {
-        proc_remove(todo_proc_file);
         pr_err("[ERROR] could not initialize /proc/%s\n", PROCFS_NAME);
         return -ENOMEM;
     }
