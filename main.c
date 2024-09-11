@@ -14,18 +14,16 @@
 
 #define RETURN_OK   (0)
 #define PROCFS_NAME "todo"
+#define WRITE_BUFF_LEN  (TASK_NAME_LEN+3)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
     #define WITH_PROC_OPS
 #endif /* WITH_PROC_OPS */
 
 static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, loff_t *offset);
+static ssize_t todo_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset);
 
 typedef int(*cmd_handler)(struct tasklist *, const char *);
-static const cmd_handler handlers[CMDS_COUNT] = {
-    ['A' % CMDS_COUNT] = add_handler,
-    ['D' % CMDS_COUNT] = delete_handler,
-};
 static struct tasklist tl = { .head = NULL, .tail = NULL, .count = 0, .tlen = 0 };
 
 static struct proc_dir_entry *todo_proc_file;
@@ -33,10 +31,12 @@ static struct proc_dir_entry *todo_proc_file;
 #ifdef WITH_PROC_OPS
 static const struct proc_ops todo_proc_fops = {
     .proc_read = todo_read,
+    .proc_write = todo_write,
 };
 #else
 static const struct file_operations todo_proc_fops = {
     .read = todo_read,
+    .write = todo_write,
 };
 #endif /* WITH_PROC_OPS */
 
@@ -45,7 +45,7 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
     size_t lbuff_len = tl.tlen+tl.count+1, off = 0;
     ssize_t ret = lbuff_len;
 
-    if (*offset >= tl.tlen || tl.count == 0)
+    if (*offset >= lbuff_len || tl.count == 0)
         return 0;
 
     char *lbuff = kzalloc(lbuff_len, GFP_KERNEL);
@@ -56,7 +56,7 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
 
     while (t) {
         sprintf(lbuff+off, "%s\n", t->name);
-        off += t->len + 2;
+        off += t->len + 1;
         t = t->next;
     }
 
@@ -69,6 +69,46 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
 defer_ret:
     kfree(lbuff);
     return ret;
+}
+
+static ssize_t todo_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset) {
+    // A: Write a linux driver
+    // D: Write a linux driver
+    if (length < 4) {
+        pr_err("[ERROR] input is too short\n");
+        goto ret;
+    }
+    size_t klen = length;
+
+    if (length > WRITE_BUFF_LEN)
+        klen = WRITE_BUFF_LEN;
+
+    char kbuffer[WRITE_BUFF_LEN] = { 0 };
+    if (copy_from_user(kbuffer, buffer, klen)) {
+        pr_err("[ERROR] copy_from_user failed\n");
+        return -EFAULT;
+    }
+
+    cmd_handler fn;
+    char cmd = kbuffer[0];
+    switch (cmd) {
+        case 'A':
+            fn = add_handler;
+            break;
+        case 'D':
+            fn = delete_handler;
+            break;
+        default: {
+            pr_err("[ERROR] unknown command %c\n", cmd);
+            return -EFAULT;
+        }
+    }
+
+    char *task_name = &kbuffer[3];
+    fn(&tl, task_name);
+
+ret:
+    return length;
 }
 
 static int __init todo_init(void) {
