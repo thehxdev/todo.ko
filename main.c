@@ -118,9 +118,6 @@ static int __init todo_init(void) {
         return -ENOMEM;
     }
 
-    add_handler(&tl, "Write a linux driver");
-    add_handler(&tl, "Write a blog post");
-
     pr_info("[INFO] todo app initialized\n");
     return RETURN_OK;
 }
