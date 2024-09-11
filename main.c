@@ -44,7 +44,7 @@ static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, 
     struct task *t = tl.head;
     size_t lbuff_len = tl.tlen+tl.count+1, off = 0;
 
-    if (*offset >= tl.tlen)
+    if (*offset >= tl.tlen || tl.count == 0)
         return 0;
 
     char *lbuff = kzalloc(lbuff_len, GFP_KERNEL);
