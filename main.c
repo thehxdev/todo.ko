@@ -23,9 +23,7 @@
 static ssize_t todo_read(struct file *filp, char __user *buffer, size_t length, loff_t *offset);
 static ssize_t todo_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset);
 
-typedef int(*cmd_handler)(struct tasklist *, const char *);
 static struct tasklist tl = { .head = NULL, .tail = NULL, .count = 0, .tlen = 0 };
-
 static struct proc_dir_entry *todo_proc_file;
 
 #ifdef WITH_PROC_OPS
@@ -80,7 +78,7 @@ static ssize_t todo_write(struct file *filp, const char __user *buffer, size_t l
     }
     size_t klen = length;
 
-    if (length > WRITE_BUFF_LEN)
+    if (klen > WRITE_BUFF_LEN)
         klen = WRITE_BUFF_LEN;
 
     char kbuffer[WRITE_BUFF_LEN] = { 0 };
@@ -89,23 +87,20 @@ static ssize_t todo_write(struct file *filp, const char __user *buffer, size_t l
         return -EFAULT;
     }
 
-    cmd_handler fn;
     char cmd = kbuffer[0];
+    char *task_name = &kbuffer[3];
     switch (cmd) {
         case 'A':
-            fn = add_handler;
+            add_handler(&tl, task_name);
             break;
         case 'D':
-            fn = delete_handler;
+            delete_handler(&tl, task_name);
             break;
         default: {
             pr_err("[ERROR] unknown command %c\n", cmd);
             return -EFAULT;
         }
     }
-
-    char *task_name = &kbuffer[3];
-    fn(&tl, task_name);
 
 ret:
     return length;
